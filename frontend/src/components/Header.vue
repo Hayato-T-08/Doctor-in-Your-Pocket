@@ -1,6 +1,6 @@
 <template>
     
-      <v-app-bar color="blue-darken-4">
+      <v-app-bar color="grey-darken-3">
     
         <v-app-bar-nav-icon 
           variant="text"
@@ -8,11 +8,11 @@
         </v-app-bar-nav-icon>
         
         <v-app-bar-title class="title  font-weight-bold">
-        MindMingle
+          Diagnosis AI
         </v-app-bar-title>
         
         <v-app-bar-title class="subtitle  font-weight-bold">
-            FeatureExtraction
+            Doctor in your pokect
         </v-app-bar-title>
 
         <template v-slot:append>
