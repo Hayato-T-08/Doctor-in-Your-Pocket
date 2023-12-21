@@ -1,6 +1,6 @@
 <template>
   <!-- <v-chip :color="getColorLabel(item.label)" @mouseenter="showModal = true" @mouseleave="showModal = false">{{ item.word }}</v-chip> -->
-  <v-chip :color="getColorLabel(item.label)" @click="showModal = true">{{ item.word }}</v-chip>
+  <v-chip :color="getColorLabel(item.entity)" @click="showModal = true">{{ item.word }}</v-chip>
 
   <v-dialog v-model="showModal" max-width="600px">
     <v-card>
