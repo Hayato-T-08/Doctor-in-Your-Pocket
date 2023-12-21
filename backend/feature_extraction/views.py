@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import json, nltk, joblib
+from transformers import pipeline
 
 ### NLTKによる固有表現
 nltk.download('punkt')
@@ -123,7 +124,7 @@ def ner_with_crf(text, model_path):
 
 
 # 仮にメモリ内に結果を保存（本番環境ではデータベース等を使用）
-processed_text_memory = {'rulebase': '', 'crf': ''}
+processed_text_memory = {'rulebase': '', 'crf': '','symptom': '', 'diagnosis': ''}
 
 @api_view(['POST'])
 def process_with_rulebase_text(request):
@@ -160,3 +161,45 @@ def process_with_crf_text(request):
 @api_view(['GET'])
 def get_processed_with_crf_text(request):
     return Response({'result': processed_text_memory['crf']}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def symptom_list(request):
+    pipe = pipeline("token-classification", model="ugaray96/biobert_ncbi_disease_ner")
+    received_text = request.data.get('text', None)
+    
+    if received_text is not None:
+        processed_text = pipe(received_text)
+        
+        # 処理結果を保存
+        processed_text_memory['symptom'] = processed_text
+        
+        return Response({'status': 'processed'}, status=status.HTTP_200_OK)
+    else:
+        return Response({'status': 'bad request'}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def get_symptom_list(request):
+    diseases = []
+    for entity in processed_text_memory['symptom']:
+        if entity["entity"] in ["Disease", "Disease Continuation"]:
+            # Remove '#' symbol if present
+            word_without_hashtag = entity["word"].lstrip("#")
+            if entity["entity"] == "Disease":
+                diseases.append(word_without_hashtag)
+            elif diseases:
+                diseases[-1] += f"{word_without_hashtag}"
+
+    text = ','.join(diseases)
+    pipe = pipeline("text-classification", model="Hayato-T08/disease_diagnosis")
+    answer = pipe(text)
+    dict = [('0', '(vertigo) Paroymsal  Positional Vertigo'), ('1', 'AIDS'), ('2', 'Acne'), ('3', 'Alcoholic hepatitis'), ('4', 'Allergy'), ('5', 'Arthritis'), ('6', 'Bronchial Asthma'), ('7', 'Cervical spondylosis'), ('8', 'Chicken pox'), ('9', 'Chronic cholestasis'), ('10', 'Common Cold'), ('11', 'Dengue'), ('12', 'Diabetes '), ('13', 'Dimorphic hemmorhoids(piles)'), ('14', 'Drug Reaction'), ('15', 'Fungal infection'), ('16', 'GERD'), ('17', 'Gastroenteritis'), ('18', 'Heart attack'), ('19', 'Hepatitis B'), ('20', 'Hepatitis C'), ('21', 'Hepatitis D'), ('22', 'Hepatitis E'), ('23', 'Hypertension '), ('24', 'Hyperthyroidism'), ('25', 'Hypoglycemia'), ('26', 'Hypothyroidism'), ('27', 'Impetigo'), ('28', 'Jaundice'), ('29', 'Malaria'), ('30', 'Migraine'), ('31', 'Osteoarthristis'), ('32', 'Paralysis (brain hemorrhage)'), ('33', 'Peptic ulcer diseae'), ('34', 'Pneumonia'), ('35', 'Psoriasis'), ('36', 'Tuberculosis'), ('37', 'Typhoid'), ('38', 'Urinary tract infection'), ('39', 'Varicose veins'), ('40', 'hepatitis A')]
+    label = answer[0]['label'].split('_')[1]
+    disease = dict[int(label)][1]
+
+    return Response({'result': processed_text_memory['symptom'],'disease': disease}, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def get_diagnosis_list(request):
+    pipe = pipeline("text-classification", model="Hayato-T08/disease_diagnosis")
+    answer = pipe(request)
+    return Response({'result': answer}, status=status.HTTP_200_OK)

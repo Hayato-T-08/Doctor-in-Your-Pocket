@@ -29,7 +29,7 @@ export default {
   },
   methods: {
     send() {
-      axios.post('http://localhost:8000/api/process_with_rulebase/', {
+      axios.post('http://localhost:8000/api/symptom_list/', {
         text: this.text
       })
       .then(response => {

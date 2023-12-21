@@ -1,4 +1,4 @@
-FROM python:3.10-alpine
+FROM pytorch/pytorch
 
 ENV APP_HOME=/home/app/web
 RUN mkdir -p ${APP_HOME}
@@ -6,8 +6,6 @@ WORKDIR ${APP_HOME}
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-
-RUN apk add --no-cache gcc g++ musl-dev openblas-dev
 
 RUN pip install --upgrade pip
 COPY ./requirements.dev.txt .

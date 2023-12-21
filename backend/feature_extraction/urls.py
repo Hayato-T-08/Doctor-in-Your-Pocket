@@ -6,7 +6,9 @@ urlpatterns = [
     path('processed_with_rulebase/', views.get_processed_with_rulebase_text, name='get_processed_with_rulebase_text'),
     path('process_with_crf/', views.process_with_crf_text, name='process_with_crf_text'),
     path('processed_with_crf/', views.get_processed_with_crf_text, name='get_processed_with_crf_text'),
-    path('disease_list/', views.get_disease_list, name='get_disease_list'),
+    path('symptom_list/', views.symptom_list, name='symptom_list'),
+    path('get_symptom_list/', views.get_symptom_list, name='get_symptom_list'),
+    path('diagnosis_list/', views.get_diagnosis_list, name='get_diagnosis_list')
 ]
 
 
