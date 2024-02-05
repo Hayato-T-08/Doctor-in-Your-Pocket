@@ -12,7 +12,7 @@
         </v-app-bar-title>
         
         <v-app-bar-title class="subtitle  font-weight-bold">
-            Doctor in your pokect
+            Doctor in your pocket
         </v-app-bar-title>
 
         <template v-slot:append>
