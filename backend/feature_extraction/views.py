@@ -10,6 +10,76 @@ nltk.download('averaged_perceptron_tagger')
 nltk.download('maxent_ne_chunker')
 nltk.download('words')
 
+def make_disease(data):
+    diseases = []
+    for entity in data:
+        if entity["entity"] in ["Disease", "Disease Continuation"]:
+            word_without_hashtag = entity["word"].lstrip("#")
+            if entity["entity"] == "Disease":
+                diseases.append(word_without_hashtag)
+            elif diseases:
+                diseases[-1] += f"{word_without_hashtag}"
+
+    text = ','.join(diseases)
+    return text
+
+def merge_word_pieces(data):
+ 
+    merged_data = []
+
+    temp_word = ''
+
+    temp_start = None
+    temp_end = None
+    temp_entity = None
+    temp_score = 0
+    
+    for entry in data:
+        word = entry['word']
+    
+    
+        if word.startswith('##'):
+            
+            temp_word += word[2:]
+       
+            temp_end = entry['end']
+ 
+            temp_score = max(temp_score, entry['score'])
+          
+        else:
+  
+            if temp_word:
+                merged_data.append({
+                    'entity': temp_entity,
+                    'score': temp_score,
+                    'index': len(merged_data) + 1,
+                    'word': temp_word,
+                    'start': temp_start,
+                    'end': temp_end
+                })
+                temp_word = ''
+                temp_start = None
+                temp_end = None
+                temp_score = 0
+            temp_word = word
+            temp_start = entry['start']
+            temp_end = entry['end']
+            temp_entity = entry['entity']
+            temp_score = entry['score']
+    
+    if temp_word:
+        merged_data.append({
+            'entity': temp_entity,
+            'score': temp_score,
+            'index': len(merged_data) + 1,
+            'word': temp_word,
+            'start': temp_start,
+            'end': temp_end
+        })
+    
+    return merged_data
+
+
 
 def rule_based_ner_to_json(text):
     tokens = nltk.word_tokenize(text)
@@ -46,10 +116,8 @@ def ner_with_crf(text, model_path):
     'SYM': 34, 'TO': 35, 'UH': 36, 'VB': 37, 'VBD': 38, 'VBG': 39, 'VBN': 40, 'VBP': 41, 'VBZ': 42, 'WDT': 43,
     'WP': 44, 'WP$': 45, 'WRB': 46}
 
-    # A list to hold the tokenized and tagged sentences
     tokenized_sentences = []
 
-    # Tokenize and tag each sentence
     for sentence in sentences:
         words = nltk.word_tokenize(sentence)
         pos_tags = nltk.pos_tag(words)
@@ -151,7 +219,6 @@ def process_with_crf_text(request):
     if received_text is not None:
         processed_text = ner_with_crf(received_text, "./nlp_model/optimal_crf_model.pkl")
         
-        # 処理結果を保存
         processed_text_memory['crf'] = processed_text
         
         return Response({'status': 'processed'}, status=status.HTTP_200_OK)
@@ -179,23 +246,15 @@ def symptom_list(request):
 
 @api_view(['GET'])
 def get_symptom_list(request):
-    diseases = []
-    for entity in processed_text_memory['symptom']:
-        if entity["entity"] in ["Disease", "Disease Continuation"]:
-            # Remove '#' symbol if present
-            word_without_hashtag = entity["word"].lstrip("#")
-            if entity["entity"] == "Disease":
-                diseases.append(word_without_hashtag)
-            elif diseases:
-                diseases[-1] += f"{word_without_hashtag}"
 
-    text = ','.join(diseases)
+    text = make_disease(processed_text_memory['symptom'])
     pipe = pipeline("text-classification", model="Hayato-T08/disease_diagnosis")
     answer = pipe(text)
     dict = [('0', '(vertigo) Paroymsal  Positional Vertigo'), ('1', 'AIDS'), ('2', 'Acne'), ('3', 'Alcoholic hepatitis'), ('4', 'Allergy'), ('5', 'Arthritis'), ('6', 'Bronchial Asthma'), ('7', 'Cervical spondylosis'), ('8', 'Chicken pox'), ('9', 'Chronic cholestasis'), ('10', 'Common Cold'), ('11', 'Dengue'), ('12', 'Diabetes '), ('13', 'Dimorphic hemmorhoids(piles)'), ('14', 'Drug Reaction'), ('15', 'Fungal infection'), ('16', 'GERD'), ('17', 'Gastroenteritis'), ('18', 'Heart attack'), ('19', 'Hepatitis B'), ('20', 'Hepatitis C'), ('21', 'Hepatitis D'), ('22', 'Hepatitis E'), ('23', 'Hypertension '), ('24', 'Hyperthyroidism'), ('25', 'Hypoglycemia'), ('26', 'Hypothyroidism'), ('27', 'Impetigo'), ('28', 'Jaundice'), ('29', 'Malaria'), ('30', 'Migraine'), ('31', 'Osteoarthristis'), ('32', 'Paralysis (brain hemorrhage)'), ('33', 'Peptic ulcer diseae'), ('34', 'Pneumonia'), ('35', 'Psoriasis'), ('36', 'Tuberculosis'), ('37', 'Typhoid'), ('38', 'Urinary tract infection'), ('39', 'Varicose veins'), ('40', 'hepatitis A')]
     label = answer[0]['label'].split('_')[1]
     disease = dict[int(label)][1]
-
+        
+    processed_text_memory['symptom'] = merge_word_pieces(processed_text_memory['symptom'])
     return Response({'result': processed_text_memory['symptom'],'disease': disease}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])

@@ -3,3 +3,4 @@
 *.sql
 .env.dev.sample
 .env.prod.sample
+.env

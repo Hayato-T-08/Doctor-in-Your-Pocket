@@ -47,8 +47,8 @@ export default {
         .then(response => {
           this.result = response.data.result;
           this.disease = response.data.disease;
-          console.log(this.result);
-          console.log(this.disease);
+          // console.log(this.result);
+          // console.log(this.disease);
         })
         .catch(error => {
           console.error('An error occurred:', error);

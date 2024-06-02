@@ -21,8 +21,8 @@
             </v-row>
           </template>
         </v-img>
-        <p>Word: {{ item.label }}</p>
-        <p>Label: {{ item.word }}</p>
+        <p>Word: {{ item.word }}</p>
+        <p>Label: {{ item.entity }}</p>
       </v-card-text>
       <v-card-actions>
         <v-btn @click="showModal = false">Close</v-btn>
@@ -51,7 +51,9 @@ export default {
       return ColorLabel[label] || 'orange'; // ラベルが定義されていない場合は 'orange'
     },
     getImage(value) {
-      const API_KEY = prosess.env.API_KEY;
+      const API_KEY = import.meta.env.VITE_API_KEY;
+      console.log(import.meta.env.VITE_API_KEY);
+      console.log(import.meta.env)
       const baseUrl = 'https://pixabay.com/api/?key=' + API_KEY;
       var keyword = '&q=' + encodeURIComponent(value);
       var option = '&orientation=horizontal';
