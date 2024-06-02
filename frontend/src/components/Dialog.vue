@@ -52,8 +52,8 @@ export default {
     },
     getImage(value) {
       const API_KEY = import.meta.env.VITE_API_KEY;
-      console.log(import.meta.env.VITE_API_KEY);
-      console.log(import.meta.env)
+      // console.log(import.meta.env.VITE_API_KEY);
+      // console.log(import.meta.env)
       const baseUrl = 'https://pixabay.com/api/?key=' + API_KEY;
       var keyword = '&q=' + encodeURIComponent(value);
       var option = '&orientation=horizontal';
