@@ -29,7 +29,8 @@ export default {
   },
   methods: {
     send() {
-      axios.post('http://localhost:8000/api/symptom_list/', {
+      const proxy = import.meta.env.VITE_PROXY_URL;
+      axios.post(proxy+'/api/symptom_list/', {
         text: this.text
       })
       .then(response => {

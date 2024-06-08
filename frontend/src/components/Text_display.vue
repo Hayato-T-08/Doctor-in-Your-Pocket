@@ -34,6 +34,7 @@ export default {
       result: null,
       disease: null,
       showModal: false,
+      proxy: null,
     };
   },
   components: {
@@ -41,7 +42,8 @@ export default {
   },
   methods: {
     fetchResult() {
-      axios.get('http://localhost:8000/api/get_symptom_list/', {
+      const proxy = import.meta.env.VITE_PROXY_URL;
+      axios.get(proxy+'/api/get_symptom_list/', {
         // 任意の条件などを送信できます
       })
         .then(response => {
